@@ -1,4 +1,4 @@
-package com.practice.service.api.auth;
+package com.practice.service.api.auth.manager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,8 +1,7 @@
 package com.practice.service.api.filter;
 
-import com.practice.service.utils.JWTUtil;
+import com.practice.service.utils.JwtUtil;
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,15 +16,15 @@ import java.util.List;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    private final JWTUtil jwtUtil;
+    private final JwtUtil jwtUtil;
 
-    public JwtAuthenticationFilter(JWTUtil jwtUtil) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return request.getServletPath().startsWith("/auth/") || request.getServletPath().startsWith("/register/");
+        return request.getServletPath().startsWith("/login") || request.getServletPath().startsWith("/register");
     }
 
     @Override

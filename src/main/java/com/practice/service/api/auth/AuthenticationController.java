@@ -7,7 +7,7 @@ import com.practice.service.exceptions.BadRequestException;
 import com.practice.service.services.AuthenticationService;
 import com.practice.service.support.RateLimit;
 import com.practice.service.support.RateLimitType;
-import com.practice.service.utils.JWTUtil;
+import com.practice.service.utils.JwtUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -22,19 +22,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/login")
 public class AuthenticationController {
     private final AuthenticationManager authenticationManager;
-    private final JWTUtil jwtUtil;
+    private final JwtUtil jwtUtil;
     private final AuthenticationService authenticationService;
 
-    public  AuthenticationController(AuthenticationManager authenticationManager, JWTUtil jwtUtil, AuthenticationService authenticationService) {
+    public  AuthenticationController(AuthenticationManager authenticationManager, JwtUtil jwtUtil, AuthenticationService authenticationService) {
         this.authenticationService = authenticationService;
         this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
     }
 
-    @PostMapping("/authentication")
+    @PostMapping
     @RateLimit(
             key = "login",
             limit = 15,

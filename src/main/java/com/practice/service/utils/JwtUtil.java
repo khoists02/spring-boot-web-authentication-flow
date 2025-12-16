@@ -2,7 +2,6 @@ package com.practice.service.utils;
 
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -13,13 +12,11 @@ import java.security.Key;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Component
-public class JWTUtil {
+public class JwtUtil {
     private final String SECRET = "MySuperSecretKeyForJWTThatIsAtLeast32Bytes!";
     private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
-    private final long expiration = 3600_000; // 1 hour
 
     public String generateToken(Authentication auth) {
         List<String> roles = auth.getAuthorities().stream()
@@ -28,6 +25,8 @@ public class JWTUtil {
 
         Map<String, Object> claims = Map.of("roles", roles);
 
+        // 1 hour
+        long expiration = 3600_000;
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(auth.getName())

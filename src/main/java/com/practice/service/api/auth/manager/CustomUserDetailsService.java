@@ -1,4 +1,4 @@
-package com.practice.service.api.auth.user;
+package com.practice.service.api.auth.manager;
 
 import com.practice.service.entities.User;
 import com.practice.service.repositories.UserRepository;

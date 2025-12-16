@@ -1,8 +1,7 @@
 package com.practice.service.config;
 
-import com.practice.service.api.auth.CustomAccessDeniedHandler;
-import com.practice.service.api.auth.CustomAuthenticationEntryPoint;
-import com.practice.service.api.auth.user.CustomUserDetailsService;
+import com.practice.service.api.auth.manager.CustomAccessDeniedHandler;
+import com.practice.service.api.auth.manager.CustomAuthenticationEntryPoint;
 import com.practice.service.api.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -23,32 +22,21 @@ public class SecurityConfig {
     private final CustomAccessDeniedHandler accessDeniedHandler;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final JwtAuthenticationFilter jwtFilter;
-    private final AuthenticationConfiguration authenticationConfiguration;
-
-    @Bean
-    public AuthenticationManager authenticationManager() throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
-    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                //  •	Stateless: Spring Security không tạo session
-                //	•	JWT filter chạy trước UsernamePasswordAuthenticationFilter
-                //	•	Tất cả request sau login sẽ đọc JWT cookie để populate SecurityContext
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/register/**").permitAll()
+                        .requestMatchers("/login/**", "/register/**").permitAll()
                         .anyRequest().authenticated()
                 )
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(ex -> ex
                         .accessDeniedHandler(accessDeniedHandler)       // 403
                         .authenticationEntryPoint(authenticationEntryPoint) // 401
                 );
-
-
         return http.build();
     }
 
@@ -56,4 +44,11 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
 }
