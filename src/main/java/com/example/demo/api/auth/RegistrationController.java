@@ -20,7 +20,7 @@ public class RegistrationController {
     }
 
     @PostMapping
-    public ResponseEntity register(@Valid @RequestBody RegistrationModel model) {
+    public ResponseEntity register(@Valid @RequestBody RegistrationModel model) throws Exception {
         registrationService.registerNewUser(model);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
