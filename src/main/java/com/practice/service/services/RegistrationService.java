@@ -38,15 +38,17 @@ public class RegistrationService {
 
     @Transactional
     public void registerNewUser(RegistrationModel model) throws Exception {
-        boolean exists = registrationRepository.existsByEmail(model.getEmail());
-        if (exists) {
-            throw new EmailAlreadyExistsException(model.getEmail());
+        String email = model.getEmail();
+        if (userRepository.existsByEmail(email)) {
+            throw new EmailAlreadyExistsException(email);
+        }
+        if (registrationRepository.existsByEmail(email)) {
+            throw new EmailAlreadyExistsException(email);
         }
         registrationRepository.save(mapToEntity(model));
-        boolean existEmailVerificationToken = emailVerificationTokenRepository.existsByEmail(model.getEmail());
 
-        if (existEmailVerificationToken) {
-            throw new EmailAlreadyExistsException(model.getEmail()); // if email verification aready exist, rollback all transition.
+        if (emailVerificationTokenRepository.existsByEmail(email)) {
+            throw new EmailAlreadyExistsException(email); // if email verification aready exist, rollback all transition.
         }
         // create a token
         String plainToken = emailTokenService.generatePlainToken();
@@ -96,6 +98,12 @@ public class RegistrationService {
         }
         Registration registration = registrationRepository
                 .findByEmail(verificationToken.getEmail()).orElseThrow(() -> new NotFoundEmailException("Not found email"));
+
+        boolean existUser = userRepository.existsByEmail(registration.getEmail());
+
+        if (existUser) {
+            throw new EmailAlreadyExistsException("User Email already exists"); // rollback
+        }
 
         userRepository.save(mapRegistrationToUser(registration)); // save user
         registrationRepository.delete(registration); // delete registration.
