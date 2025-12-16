@@ -85,7 +85,7 @@ public class RegistrationService {
     // This function to verify token from email
     // 1. Convert plain token to hash token
     // 2. find verify email with hash token
-    // 3. if it exist => create new user => delete registration item and verify token email item.
+    // 3. if it "exist" => create new user => delete registration item and verify token email item.
     @Transactional
     public void verifyToken(String token) {
         // get hash token from plain token send by email
