@@ -43,7 +43,11 @@ public class RegistrationService {
             throw new EmailAlreadyExistsException(model.getEmail());
         }
         registrationRepository.save(mapToEntity(model));
+        boolean existEmailVerificationToken = emailVerificationTokenRepository.existsByEmail(model.getEmail());
 
+        if (existEmailVerificationToken) {
+            throw new EmailAlreadyExistsException(model.getEmail()); // if email verification aready exist, rollback all transition.
+        }
         // create a token
         String plainToken = emailTokenService.generatePlainToken();
 
@@ -53,7 +57,11 @@ public class RegistrationService {
         token.setExpiresAt(LocalDateTime.now().plusMinutes(15));
 
         emailVerificationTokenRepository.save(token);
+        // send email
+        sendEmail(model, plainToken);
+    }
 
+    private void sendEmail(RegistrationModel model, String plainToken) {
         // send email
         EmailEvent event = new EmailEvent();
         event.setTo(model.getEmail());
@@ -68,7 +76,6 @@ public class RegistrationService {
         vars.put("verifyUrl", verifyUrl);
         event.setVariables(vars);
         emailProducer.sendEmail(event);
-
     }
 
     // This function to verify token from email
