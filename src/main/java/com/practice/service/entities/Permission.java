@@ -11,4 +11,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Permission extends BaseEntity {
+    private String name;
+    private String description;
 }
