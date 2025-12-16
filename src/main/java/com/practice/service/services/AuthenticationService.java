@@ -21,9 +21,9 @@ public class AuthenticationService {
         if (!userRepository.existsByEmail(username))  {
             throw new UsernameNotFoundException(username);
         }
-        User user = userRepository.findByEmail(username);
+        User user = userRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new BadRequestException("Password does not match");
+            throw new BadRequestException("Password do not match");
         }
         return user;
     }

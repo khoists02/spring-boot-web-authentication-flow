@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/register")
 public class RegistrationController {
     private final RegistrationService registrationService;
 
@@ -18,7 +18,7 @@ public class RegistrationController {
         this.registrationService = registrationService;
     }
 
-    @PostMapping("/register")
+    @PostMapping
     // ADD RATE LIMIT TO AVOID ATTACH SPAM EMAIL AND REGISTER.
     @RateLimit(
             key = "register",
