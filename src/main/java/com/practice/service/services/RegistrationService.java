@@ -5,8 +5,7 @@ import com.practice.service.dto.RegistrationModel;
 import com.practice.service.entities.EmailVerificationToken;
 import com.practice.service.entities.Registration;
 import com.practice.service.entities.User;
-import com.practice.service.exceptions.BadRequestException;
-import com.practice.service.exceptions.EmailAlreadyExistsException;
+import com.practice.service.exceptions.*;
 import com.practice.service.repositories.EmailVerificationTokenRepository;
 import com.practice.service.repositories.RegistrationRepository;
 import com.practice.service.repositories.UserRepository;
@@ -20,7 +19,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-@Transactional
 public class RegistrationService {
     private final UserRepository userRepository;
     private final RegistrationRepository registrationRepository;
@@ -38,6 +36,7 @@ public class RegistrationService {
         this.userRepository = userRepository;
     }
 
+    @Transactional
     public void registerNewUser(RegistrationModel model) throws Exception {
         boolean exists = registrationRepository.existsByEmail(model.getEmail());
         if (exists) {
@@ -72,6 +71,31 @@ public class RegistrationService {
 
     }
 
+    // This function to verify token from email
+    // 1. Convert plain token to hash token
+    // 2. find verify email with hash token
+    // 3. if it exist => create new user => delete registration item and verify token email item.
+    @Transactional
+    public void verifyToken(String token) {
+        // get hash token from plain token send by email
+        String tokenHash = emailTokenService.hashToken(token);
+        // find with hash token
+        EmailVerificationToken verificationToken =
+                emailVerificationTokenRepository.findByTokenHash(tokenHash)
+                        .orElseThrow(() -> new InvalidTokenException("Invalid Hash Token"));
+
+        if (verificationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new TokenExpiredException("Token expired");
+        }
+        Registration registration = registrationRepository
+                .findByEmail(verificationToken.getEmail()).orElseThrow(() -> new NotFoundEmailException("Not found email"));
+
+        userRepository.save(mapRegistrationToUser(registration)); // save user
+        registrationRepository.delete(registration); // delete registration.
+        emailVerificationTokenRepository.delete(verificationToken); // delete after used.
+    }
+
+    // mappers.
     private Registration mapToEntity(RegistrationModel model) {
         Registration registration = new Registration();
         registration.setEmail(model.getEmail());
@@ -81,31 +105,12 @@ public class RegistrationService {
         return registration;
     }
 
-    public void verifyToken(String token) {
-        // get hash token from plain token send by email
-        String tokenHash = emailTokenService.hashToken(token);
-        // find with hash token
-        EmailVerificationToken verificationToken =
-                emailVerificationTokenRepository.findByTokenHash(tokenHash)
-                        .orElseThrow(() -> new BadRequestException("Invalid Hash Token", "11002"));
-
-        if (verificationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Token expired");
-        }
-        // find with decoded token.
-        Registration registration = registrationRepository.findByEmail(verificationToken.getEmail()).orElseThrow(() -> new RuntimeException("Not found email"));
-
-        if (registration != null) {
-            User user = new User();
-            user.setEmail(registration.getEmail());
-            user.setPassword(registration.getPassword());
-            user.setUsername(registration.getUsername());
-
-            userRepository.save(user); // save user
-            registrationRepository.delete(registration); // delete registration.
-            emailVerificationTokenRepository.delete(verificationToken); // delete after used.
-        }
+    private User mapRegistrationToUser(Registration registration) {
+        User user = new User();
+        user.setEmail(registration.getEmail());
+        user.setPassword(registration.getPassword());
+        user.setUsername(registration.getUsername());
+        return user;
     }
-
 
 }
