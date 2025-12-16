@@ -5,6 +5,7 @@ import com.practice.service.entities.User;
 import com.practice.service.repositories.UserRepository;
 import io.jsonwebtoken.JwtException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,13 +26,14 @@ public class AuthenticatedController {
     }
 
     @GetMapping
+    @PreAuthorize("hasPermission('ABC')")
     public ResponseEntity<?> getAuthenticatedUser(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null) {
             throw new JwtException("Authentication is null");
         }
-
+       
         List<String> roleNames = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());

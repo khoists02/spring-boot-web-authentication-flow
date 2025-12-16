@@ -41,10 +41,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (token != null && jwtUtil.validateToken(token)) {
             String username = jwtUtil.getUsername(token);
+
+            // TODO: should find all permission from table permission, roles, and user instead use it.
+            List<SimpleGrantedAuthority> authorities = jwtUtil.getAuthoritiesFromToken(token);
+            // List.of(new SimpleGrantedAuthority("ROLE_USER")) // dont allow roles.
             // For demo, assume ROLE_USER; in production, extract roles from claims
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                    username, null, List.of(new SimpleGrantedAuthority("ROLE_USER"))
-            );
+                    username, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
         filterChain.doFilter(request, response);
