@@ -33,21 +33,22 @@ public class AuthenticatedController {
         if (authentication == null) {
             throw new JwtException("Authentication is null");
         }
-       
-        List<String> roleNames = authentication.getAuthorities().stream()
+
+        List<String> authorizeNames = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
+
         String email = authentication.getName();
         User user = userRepository.findByEmail(email).orElseThrow(() -> new JwtException("User not found"));
-        return ResponseEntity.ok(mapToResponse(user, roleNames));
+        return ResponseEntity.ok(mapToResponse(user, authorizeNames));
     }
 
-    private AuthenticationResponse mapToResponse(User user, List<String> roles) {
+    private AuthenticationResponse mapToResponse(User user, List<String> permissions) {
         AuthenticationResponse response = new AuthenticationResponse();
         response.setUsername(user.getUsername());
         response.setEmail(user.getEmail());
         response.setId(user.getId().toString());
-        response.setRoles(roles);
+        response.setPermissions(permissions);
         return response;
     }
 }
