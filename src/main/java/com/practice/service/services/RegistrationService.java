@@ -1,0 +1,111 @@
+package com.practice.service.services;
+
+import com.practice.service.dto.EmailEvent;
+import com.practice.service.dto.RegistrationModel;
+import com.practice.service.entities.EmailVerificationToken;
+import com.practice.service.entities.Registration;
+import com.practice.service.entities.User;
+import com.practice.service.exceptions.BadRequestException;
+import com.practice.service.exceptions.EmailAlreadyExistsException;
+import com.practice.service.repositories.EmailVerificationTokenRepository;
+import com.practice.service.repositories.RegistrationRepository;
+import com.practice.service.repositories.UserRepository;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
+@Service
+@Transactional
+public class RegistrationService {
+    private final UserRepository userRepository;
+    private final RegistrationRepository registrationRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final EmailProducer emailProducer;
+    private final EmailTokenService emailTokenService;
+    private final EmailVerificationTokenRepository emailVerificationTokenRepository;
+
+    public RegistrationService(UserRepository userRepository, EmailVerificationTokenRepository emailVerificationTokenRepository, EmailTokenService emailTokenService, RegistrationRepository registrationRepository, PasswordEncoder passwordEncoder, EmailProducer emailProducer, JavaMailSender mailSender) {
+        this.registrationRepository = registrationRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.emailProducer = emailProducer;
+        this.emailTokenService = emailTokenService;
+        this.emailVerificationTokenRepository = emailVerificationTokenRepository;
+        this.userRepository = userRepository;
+    }
+
+    public void registerNewUser(RegistrationModel model) throws Exception {
+        boolean exists = registrationRepository.existsByEmail(model.getEmail());
+        if (exists) {
+            throw new EmailAlreadyExistsException(model.getEmail());
+        }
+        registrationRepository.save(mapToEntity(model));
+
+        // create a token
+        String plainToken = emailTokenService.generatePlainToken();
+
+        EmailVerificationToken token = new EmailVerificationToken();
+        token.setEmail(model.getEmail());
+        token.setTokenHash(emailTokenService.hashToken(plainToken));
+        token.setExpiresAt(LocalDateTime.now().plusMinutes(15));
+
+        emailVerificationTokenRepository.save(token);
+
+        // send email
+        EmailEvent event = new EmailEvent();
+        event.setTo(model.getEmail());
+        event.setSubject("Registration Successful");
+        event.setTemplate("register-success");
+
+        String verifyUrl = "http://localhost:8080/auth/verify?token=" + plainToken;
+
+        Map<String, Object> vars = new HashMap<>();
+        vars.put("username", model.getLastName());
+        vars.put("email", model.getEmail());
+        vars.put("verifyUrl", verifyUrl);
+        event.setVariables(vars);
+        emailProducer.sendEmail(event);
+
+    }
+
+    private Registration mapToEntity(RegistrationModel model) {
+        Registration registration = new Registration();
+        registration.setEmail(model.getEmail());
+        registration.setPassword(passwordEncoder.encode(model.getPassword()));
+        registration.setUsername(model.getFirstName() + " " + model.getLastName());
+
+        return registration;
+    }
+
+    public void verifyToken(String token) {
+        // get hash token from plain token send by email
+        String tokenHash = emailTokenService.hashToken(token);
+        // find with hash token
+        EmailVerificationToken verificationToken =
+                emailVerificationTokenRepository.findByTokenHash(tokenHash)
+                        .orElseThrow(() -> new BadRequestException("Invalid Hash Token", "11002"));
+
+        if (verificationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Token expired");
+        }
+        // find with decoded token.
+        Registration registration = registrationRepository.findByEmail(verificationToken.getEmail()).orElseThrow(() -> new RuntimeException("Not found email"));
+
+        if (registration != null) {
+            User user = new User();
+            user.setEmail(registration.getEmail());
+            user.setPassword(registration.getPassword());
+            user.setUsername(registration.getUsername());
+
+            userRepository.save(user); // save user
+            registrationRepository.delete(registration); // delete registration.
+            emailVerificationTokenRepository.delete(verificationToken); // delete after used.
+        }
+    }
+
+
+}
