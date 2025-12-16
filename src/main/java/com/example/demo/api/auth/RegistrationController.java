@@ -5,10 +5,7 @@ import com.example.demo.services.RegistrationService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth/registration")
@@ -23,6 +20,12 @@ public class RegistrationController {
     public ResponseEntity register(@Valid @RequestBody RegistrationModel model) throws Exception {
         registrationService.registerNewUser(model);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PostMapping("/verify")
+    public ResponseEntity<String> verifyEmail(@RequestParam String token) {
+        registrationService.verifyToken(token);
+        return ResponseEntity.ok("Email verified successfully.");
     }
 
 }
