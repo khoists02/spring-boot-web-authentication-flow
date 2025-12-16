@@ -3,6 +3,7 @@ package com.practice.service.api;
 import com.practice.service.dto.ErrorResponse;
 import com.practice.service.exceptions.BadRequestException;
 import com.practice.service.exceptions.EmailAlreadyExistsException;
+import com.practice.service.exceptions.RateLimitExceededException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -15,6 +16,18 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<?> handleRateLimit(
+            RateLimitExceededException ex
+    ) {
+        return ResponseEntity.status(429)
+                .header("Retry-After", String.valueOf(ex.getRetryAfter()))
+                .body(Map.of(
+                        "error", "RATE_LIMIT_EXCEEDED",
+                        "retryAfter", ex.getRetryAfter()
+                ));
+    }
+
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<Map<String, Object>> handleEmailExists(
             EmailAlreadyExistsException ex) {
