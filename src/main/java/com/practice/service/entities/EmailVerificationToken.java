@@ -13,16 +13,9 @@ import java.time.LocalDateTime;
 @Table(name = "email_verification_token")
 @Getter
 @Setter
-public class EmailVerificationToken {
-    @Id
-    @GeneratedValue
-    private Long id;
-
+public class EmailVerificationToken extends BaseEntity {
     private String tokenHash;
-
     private String email;
-
     private LocalDateTime expiresAt;
-
     private boolean verified = false;
 }

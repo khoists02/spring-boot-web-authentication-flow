@@ -8,10 +8,7 @@ import lombok.Setter;
 @Table(name = "registrations")
 @Getter
 @Setter
-public class Registration {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Registration extends BaseEntity {
     private String username;
     private String password;
     private String email;

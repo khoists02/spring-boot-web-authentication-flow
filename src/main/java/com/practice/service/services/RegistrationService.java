@@ -50,17 +50,19 @@ public class RegistrationService {
         if (emailVerificationTokenRepository.existsByEmail(email)) {
             throw new EmailAlreadyExistsException(email); // if email verification aready exist, rollback all transition.
         }
-        // create a token
         String plainToken = emailTokenService.generatePlainToken();
-
-        EmailVerificationToken token = new EmailVerificationToken();
-        token.setEmail(model.getEmail());
-        token.setTokenHash(emailTokenService.hashToken(plainToken));
-        token.setExpiresAt(LocalDateTime.now().plusMinutes(15));
-
-        emailVerificationTokenRepository.save(token);
+        storeEmailToken(email, plainToken);
         // send email
         sendEmail(model, plainToken);
+    }
+
+    private void storeEmailToken(String email, String plainToken) {
+        // create a token
+        EmailVerificationToken token = new EmailVerificationToken();
+        token.setEmail(email);
+        token.setTokenHash(emailTokenService.hashToken(plainToken));
+        token.setExpiresAt(LocalDateTime.now().plusMinutes(15));
+        emailVerificationTokenRepository.save(token);
     }
 
     private void sendEmail(RegistrationModel model, String plainToken) {
