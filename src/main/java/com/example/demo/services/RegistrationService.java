@@ -5,6 +5,7 @@ import com.example.demo.dto.RegistrationModel;
 import com.example.demo.entities.EmailVerificationToken;
 import com.example.demo.entities.Registration;
 import com.example.demo.entities.User;
+import com.example.demo.exceptions.BadRequestException;
 import com.example.demo.exceptions.EmailAlreadyExistsException;
 import com.example.demo.repositories.EmailVerificationTokenRepository;
 import com.example.demo.repositories.RegistrationRepository;
@@ -81,11 +82,13 @@ public class RegistrationService {
     }
 
     public void verifyToken(String token) {
+        // get hash token from plain token send by email
         String tokenHash = emailTokenService.hashToken(token);
-
+        // find with hash token
         EmailVerificationToken verificationToken =
                 emailVerificationTokenRepository.findByTokenHash(tokenHash)
-                        .orElseThrow(() -> new RuntimeException("Invalid token"));
+                        .orElseThrow(() -> new BadRequestException("Invalid Hash Token", "11002"));
+
         if (verificationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
             throw new RuntimeException("Token expired");
         }

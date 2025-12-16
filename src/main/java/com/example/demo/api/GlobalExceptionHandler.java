@@ -1,5 +1,7 @@
 package com.example.demo.api;
 
+import com.example.demo.dto.ErrorResponse;
+import com.example.demo.exceptions.BadRequestException;
 import com.example.demo.exceptions.EmailAlreadyExistsException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -7,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,5 +40,19 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.badRequest().body(errors);
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponse> handleBadRequest(BadRequestException ex) {
+
+        ErrorResponse error = new ErrorResponse();
+        error.setMessage(ex.getMessage());
+        error.setTimestamp(Instant.now());
+        error.setStatus(HttpStatus.BAD_REQUEST.value());
+        error.setErrorCode(ex.getErrorCode());
+
+        return ResponseEntity
+                .status(ex.getStatus())
+                .body(error);
     }
 }
