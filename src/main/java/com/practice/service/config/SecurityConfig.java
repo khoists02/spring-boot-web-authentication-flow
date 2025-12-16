@@ -1,5 +1,8 @@
 package com.practice.service.config;
 
+import com.practice.service.api.auth.CustomAccessDeniedHandler;
+import com.practice.service.api.auth.CustomAuthenticationEntryPoint;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -8,7 +11,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
-public class SercuriryConfig {
+@RequiredArgsConstructor
+public class SecurityConfig {
+    private final CustomAccessDeniedHandler accessDeniedHandler;
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -16,7 +23,12 @@ public class SercuriryConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(ex -> ex
+                        .accessDeniedHandler(accessDeniedHandler)       // 403
+                        .authenticationEntryPoint(authenticationEntryPoint) // 401
                 );
+
 
         return http.build();
     }
