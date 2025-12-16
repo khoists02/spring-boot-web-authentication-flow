@@ -9,5 +9,5 @@ public class AuthenticationResponse {
     private String id;
     private String username;
     private String email;
-    private List<String> roles;
+    private List<String> permissions;
 }

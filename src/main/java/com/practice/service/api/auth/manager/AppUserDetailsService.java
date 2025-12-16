@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class CustomUserDetailsService implements UserDetailsService {
+public class AppUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
 
     @Override
@@ -18,6 +18,6 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByEmail(usernameOrEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + usernameOrEmail));
 
-        return new CustomUserDetails(user);
+        return new AppUserDetails(user);
     }
 }

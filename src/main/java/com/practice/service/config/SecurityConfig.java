@@ -1,7 +1,7 @@
 package com.practice.service.config;
 
-import com.practice.service.api.auth.manager.CustomAccessDeniedHandler;
-import com.practice.service.api.auth.manager.CustomAuthenticationEntryPoint;
+import com.practice.service.api.auth.manager.UserAccessDeniedHandler;
+import com.practice.service.api.auth.manager.UserAuthenticationEntryPoint;
 import com.practice.service.api.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -19,8 +19,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final CustomAccessDeniedHandler accessDeniedHandler;
-    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
+    private final UserAccessDeniedHandler accessDeniedHandler;
+    private final UserAuthenticationEntryPoint authenticationEntryPoint;
     private final JwtAuthenticationFilter jwtFilter;
 
     @Bean
