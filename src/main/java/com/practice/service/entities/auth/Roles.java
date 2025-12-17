@@ -20,12 +20,12 @@ public class Roles extends BaseEntity {
     private String name;
     private String description;
 
-    @OneToMany(mappedBy = "role", fetch = FetchType.LAZY)
-    private Set<RoleAndPermission> rolePermissions = new HashSet<>();
+//    @OneToMany(mappedBy = "role", fetch = FetchType.LAZY)
+//    private Set<RoleAndPermission> rolePermissions = new HashSet<>();
 
-    public Set<Permission> getPermissionsFromRole(Roles role) {
-        return role.getRolePermissions().stream()
-                .map(RoleAndPermission::getPermission)
-                .collect(Collectors.toSet());
-    }
+//    public Set<Permission> getPermissionsFromRole(Roles role) {
+//        return role.getRolePermissions().stream()
+//                .map(RoleAndPermission::getPermission)
+//                .collect(Collectors.toSet());
+//    }
 }
