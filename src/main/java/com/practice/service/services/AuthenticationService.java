@@ -27,4 +27,12 @@ public class AuthenticationService {
         }
         return user;
     }
+
+    public boolean hasPermission(String permission) {
+        return false;
+    }
+
+    public boolean hasRole(String role) {
+        return true;
+    }
 }
