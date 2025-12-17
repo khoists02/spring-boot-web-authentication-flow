@@ -11,6 +11,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -29,6 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
     private final PermissionRepository permissionRepository;
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public JwtAuthenticationFilter(PermissionRepository permissionRepository, JwtUtil jwtUtil, UserRepository userRepository) {
         this.jwtUtil = jwtUtil;
@@ -67,7 +71,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                SecurityContextHolder.getContext().setAuthentication(authentication);
            }
            filterChain.doFilter(request, response);
-       } catch (Exception e) {
+
+       }  catch (Exception e) {
+           logger.error(e.getMessage());
            SecurityContextHolder.clearContext();
            filterChain.doFilter(request, response);
        }

@@ -22,6 +22,7 @@ public class User extends BaseEntity {
     private String username;
     private String password;
     private String email;
+    private boolean owner;
 
     @OneToMany(
             fetch = FetchType.LAZY,

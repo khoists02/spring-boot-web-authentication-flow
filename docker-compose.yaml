@@ -21,6 +21,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - app-network
+
 
   postgres:
     image: postgres:15-alpine
@@ -28,11 +31,13 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: shophub
+      POSTGRES_DB: demo
     ports:
       - "5432:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
+    networks:
+      - app-network
 
   redis:
     image: redis:7-alpine
@@ -42,15 +47,19 @@ services:
     volumes:
       - redis_data:/data
     command: ["redis-server", "--appendonly", "yes"] # persistence enabled
+    networks:
+      - app-network
 
-#  migrations:
-#    image: flyway/flyway:latest
-#    container_name: migrations
-#    depends_on:
-#      - postgres
-#    command: -url=jdbc:postgresql://postgres:5432/shophub -user=postgres -password=postgres -locations=filesystem:/flyway/sql migrate
-#    volumes:
-#      - ./services/migrations:/flyway/sql
+  migrations:
+    image: flyway/flyway:latest
+    container_name: migrations
+    depends_on:
+      - postgres
+    command: -url=jdbc:postgresql://postgres:5432/demo -user=postgres -password=postgres -locations=filesystem:/flyway/sql migrate
+    volumes:
+      - ./migrations:/flyway/sql
+    networks:
+      - app-network
 
   user-api:
     build:
@@ -62,12 +71,29 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/demo
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
-    #      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+      SPRING_MAIL_HOST: sandbox.smtp.mailtrap.io
+      SPRING_MAIL_USERNAME: 75484011e5c514
+      SPRING_MAIL_PASSWORD: b82e5a6b2d862e
+      SPRING_MAIL_PORT: 2525
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "true"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      RABBITMQ_EMAIL_QUEUE: email.queue
+      RABBITMQ_EMAIL_EXCHANGE: email.exchange
+      RABBITMQ_EMAIL_ROUTING_KEY: email.send
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
     ports:
       - "8081:8080"
       - "5005:5005"
     depends_on:
       - postgres
+    networks:
+      - app-network
 
   # dicomweb:
   #   build:
@@ -132,3 +158,5 @@ volumes:
   pg_data:
   redis_data:
   # postgres-data:
+networks:
+  app-network:
