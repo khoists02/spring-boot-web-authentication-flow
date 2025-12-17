@@ -17,18 +17,26 @@ CREATE TABLE roles (
     CONSTRAINT      un_role_name UNIQUE(name)
 );
 
--- Create User-Roles Table (Many-to-Many Relationship)
-CREATE TABLE users_roles (
-    user_id         UUID NOT NULL,
-    role_id         UUID NOT NULL,
-    PRIMARY KEY (user_id, role_id),
-    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT fk_role FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
-);
-
 -- Add Indexes for Performance Optimization
 CREATE INDEX idx_users_username ON users(username);
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_roles_name ON roles(name);
-CREATE INDEX idx_users_roles_user_id ON users_roles(user_id);
-CREATE INDEX idx_users_roles_role_id ON users_roles(role_id);
+
+
+CREATE TABLE user_roles
+(
+    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    created_at      TIMESTAMP DEFAULT now(),
+    updated_at      TIMESTAMP DEFAULT  now(),
+    user_id   UUID NULL,
+    role_id   UUID NULL
+);
+
+ALTER TABLE user_roles
+    ADD CONSTRAINT FK_USER_ROLES_ON_ROLE FOREIGN KEY (role_id) REFERENCES roles (id);
+
+ALTER TABLE user_roles
+    ADD CONSTRAINT FK_USER_ROLES_ON_USER FOREIGN KEY (user_id) REFERENCES users (id);
+
+CREATE INDEX idx_users_roles_user_id ON user_roles(user_id);
+CREATE INDEX idx_users_roles_role_id ON user_roles(role_id);
