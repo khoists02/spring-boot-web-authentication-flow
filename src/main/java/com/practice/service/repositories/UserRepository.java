@@ -1,6 +1,6 @@
 package com.practice.service.repositories;
 
-import com.practice.service.entities.User;
+import com.practice.service.entities.auth.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

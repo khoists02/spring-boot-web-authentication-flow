@@ -1,6 +1,6 @@
 package com.practice.service.api.auth.manager;
 
-import com.practice.service.entities.User;
+import com.practice.service.entities.auth.User;
 import com.practice.service.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;

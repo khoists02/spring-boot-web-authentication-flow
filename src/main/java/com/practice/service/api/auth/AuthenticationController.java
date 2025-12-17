@@ -2,7 +2,7 @@ package com.practice.service.api.auth;
 
 import com.practice.service.dto.AuthenticationRequest;
 import com.practice.service.dto.AuthenticationResponse;
-import com.practice.service.entities.User;
+import com.practice.service.entities.auth.User;
 import com.practice.service.exceptions.BadRequestException;
 import com.practice.service.services.AuthenticationService;
 import com.practice.service.support.RateLimit;

@@ -1,6 +1,6 @@
 package com.practice.service.services;
 
-import com.practice.service.entities.User;
+import com.practice.service.entities.auth.User;
 import com.practice.service.exceptions.BadRequestException;
 import com.practice.service.repositories.UserRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

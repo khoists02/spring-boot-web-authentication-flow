@@ -1,7 +1,7 @@
 package com.practice.service.api.auth;
 
 import com.practice.service.dto.AuthenticationResponse;
-import com.practice.service.entities.User;
+import com.practice.service.entities.auth.User;
 import com.practice.service.repositories.UserRepository;
 import io.jsonwebtoken.JwtException;
 import org.springframework.http.ResponseEntity;

@@ -1,6 +1,6 @@
 package com.practice.service.api.auth.manager;
 
-import com.practice.service.entities.User;
+import com.practice.service.entities.auth.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 

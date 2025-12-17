@@ -1,14 +1,15 @@
-package com.practice.service.entities;
+package com.practice.service.entities.auth;
 
+import com.practice.service.entities.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "users")
+@Table(name = "registrations")
 @Getter
 @Setter
-public class User extends BaseEntity {
+public class Registration extends BaseEntity {
     private String username;
     private String password;
     private String email;
