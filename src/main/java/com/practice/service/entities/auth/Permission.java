@@ -1,15 +1,17 @@
-package com.practice.service.entities;
+package com.practice.service.entities.auth;
 
+
+import com.practice.service.entities.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "roles")
+@Table(name = "permissions")
 @Getter
 @Setter
-public class Roles extends BaseEntity {
+public class Permission extends BaseEntity {
     private String name;
     private String description;
 }

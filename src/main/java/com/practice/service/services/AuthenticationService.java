@@ -1,6 +1,6 @@
 package com.practice.service.services;
 
-import com.practice.service.entities.User;
+import com.practice.service.entities.auth.User;
 import com.practice.service.exceptions.BadRequestException;
 import com.practice.service.repositories.UserRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -26,5 +26,13 @@ public class AuthenticationService {
             throw new BadRequestException("Password do not match");
         }
         return user;
+    }
+
+    public boolean hasPermission(String permission) {
+        return false;
+    }
+
+    public boolean hasRole(String role) {
+        return true;
     }
 }

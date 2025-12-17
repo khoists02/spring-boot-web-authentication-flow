@@ -1,5 +1,6 @@
-package com.practice.service.entities;
+package com.practice.service.entities.auth;
 
+import com.practice.service.entities.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
