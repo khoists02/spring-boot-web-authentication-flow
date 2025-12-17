@@ -4,11 +4,12 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
 @MappedSuperclass
-public abstract class BaseEntity {
+public abstract class BaseEntity implements Serializable {
     @Id
     @GeneratedValue
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
