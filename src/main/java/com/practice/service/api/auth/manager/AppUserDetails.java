@@ -1,27 +1,26 @@
 package com.practice.service.api.auth.manager;
 
 import com.practice.service.entities.auth.User;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.List;
 
 public class AppUserDetails implements UserDetails {
+    @Getter
     private final User user;
+    private final Collection<? extends GrantedAuthority> authorities;
 
-    public AppUserDetails(User user) {
+    public AppUserDetails(User user, Collection<? extends GrantedAuthority> authorities) {
         this.user = user;
-    }
+        this.authorities = authorities;
 
-    public User getUser() {
-        return user;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Giả sử role mặc định ROLE_USER
-        return List.of(() -> "ROLE_USER");
+        return authorities;
     }
 
     @Override
