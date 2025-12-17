@@ -90,6 +90,8 @@ services:
     ports:
       - "8081:8080"
       - "5005:5005"
+    volumes:
+      - ./user-api:/app    # bind-mount local code vào container
     depends_on:
       - postgres
     networks:
