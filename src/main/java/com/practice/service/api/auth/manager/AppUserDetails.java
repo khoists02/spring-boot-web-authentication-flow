@@ -6,16 +6,20 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.UUID;
 
 public class AppUserDetails implements UserDetails {
     @Getter
     private final User user;
-    private final Collection<? extends GrantedAuthority> authorities;
+    private final Collection<GrantedAuthority> authorities;
 
     public AppUserDetails(User user, Collection<? extends GrantedAuthority> authorities) {
         this.user = user;
-        this.authorities = authorities;
+        this.authorities = (Collection<GrantedAuthority>) authorities;
+    }
 
+    public UUID getUserId() {
+        return user.getId();
     }
 
     @Override

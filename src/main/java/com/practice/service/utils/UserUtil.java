@@ -1,5 +1,6 @@
 package com.practice.service.utils;
 
+import com.practice.service.api.auth.manager.AppUserDetails;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,8 +30,8 @@ public class UserUtil {
         }
 
         Object principal = auth.getPrincipal();
-        if (principal instanceof UserDetails) {
-            return ((UserDetails) principal).getUsername();
+        if (principal instanceof AppUserDetails) {
+            return ((AppUserDetails) principal).getUsername();
         } else if (principal instanceof String) {
             return (String) principal;
         }
@@ -40,15 +41,15 @@ public class UserUtil {
     /**
      * Lấy toàn bộ UserDetails nếu bạn dùng custom UserDetails (UserPrincipal)
      */
-    public static UserDetails getCurrentUserDetails() {
+    public static AppUserDetails getCurrentUserDetails() {
         Authentication auth = getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             return null;
         }
 
         Object principal = auth.getPrincipal();
-        if (principal instanceof UserDetails) {
-            return (UserDetails) principal;
+        if (principal instanceof AppUserDetails) {
+            return (AppUserDetails) principal;
         }
         return null;
     }

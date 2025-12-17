@@ -1,5 +1,6 @@
 package com.practice.service.utils;
 
+import com.practice.service.entities.auth.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -21,19 +23,16 @@ public class JwtUtil {
     private final String SECRET = "MySuperSecretKeyForJWTThatIsAtLeast32Bytes!";
     private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
 
-    public String generateToken(Authentication auth) {
-        // TODO: should find all permission from table permission, roles, and user instead use it.
-        List<String> roles = auth.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .toList();
+    public String generateToken(User user) {
 
-        Map<String, Object> claims = Map.of("roles", roles);
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("usr", "");
 
         // 1 hour
         long expiration = 3600_000;
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(auth.getName())
+                .setSubject(user.getEmail())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(key)

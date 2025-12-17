@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class TestController {
 
     @GetMapping
-    @PreAuthorize("hasPermission('viewTest')")
+    @PreAuthorize("hasPermission('viewUser')")
     public ResponseEntity<?> test() {
         return ResponseEntity.ok("hello");
     }

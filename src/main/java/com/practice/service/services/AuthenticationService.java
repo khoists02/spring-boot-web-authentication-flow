@@ -1,9 +1,14 @@
 package com.practice.service.services;
 
 import com.practice.service.entities.auth.User;
-import com.practice.service.exceptions.BadRequestException;
+import com.practice.service.exceptions.UnAuthenticationException;
+import com.practice.service.repositories.PermissionRepository;
 import com.practice.service.repositories.UserRepository;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import com.practice.service.utils.JwtUtil;
+import com.practice.service.utils.UserUtil;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -11,28 +16,41 @@ import org.springframework.stereotype.Service;
 public class AuthenticationService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private JwtUtil jwtUtil;
+    private HttpServletResponse response;
+    private final PermissionRepository permissionRepository;
 
-    public AuthenticationService (UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public AuthenticationService (PermissionRepository permissionRepository, HttpServletResponse response, JwtUtil jwtUtil, UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
+        this.jwtUtil = jwtUtil;
+        this.response = response;
+        this.permissionRepository = permissionRepository;
     }
 
-    public User getUserMatching(String username, String password) {
+    @Transactional
+    public void authenticate(String username, String password) {
         if (!userRepository.existsByEmail(username))  {
-            throw new UsernameNotFoundException(username);
+            throw new UnAuthenticationException("Username not found");
         }
-        User user = userRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        User user = userRepository.findByEmail(username).orElseThrow(() -> new UnAuthenticationException("User not found: " + username));
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new BadRequestException("Password do not match");
+            throw new UnAuthenticationException("Password do not match");
         }
-        return user;
+        String token = jwtUtil.generateToken(user);
+        injectCookie(token, response);
+    }
+
+
+    private void injectCookie(String token, HttpServletResponse response) {
+        Cookie cookie = new Cookie("JWT", token);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(3600); // 1 hour
+        response.addCookie(cookie);
     }
 
     public boolean hasPermission(String permission) {
-        return false;
-    }
-
-    public boolean hasRole(String role) {
-        return true;
+        return permissionRepository.userHasPermission(UserUtil.getCurrentUserDetails().getUserId(), permission);
     }
 }

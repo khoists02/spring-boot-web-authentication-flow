@@ -19,5 +19,5 @@ public class UserAndRole extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "role_id")
-    private Roles role;
+    private Role role;
 }
