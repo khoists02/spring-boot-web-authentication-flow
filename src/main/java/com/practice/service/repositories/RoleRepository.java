@@ -1,11 +1,11 @@
 package com.practice.service.repositories;
 
-import com.practice.service.entities.auth.Roles;
+import com.practice.service.entities.auth.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
 
 @Repository
-public interface RoleRepository extends JpaRepository<Roles, UUID> {
+public interface RoleRepository extends JpaRepository<Role, UUID> {
 }

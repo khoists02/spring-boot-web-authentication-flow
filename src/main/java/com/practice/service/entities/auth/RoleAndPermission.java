@@ -17,7 +17,7 @@ import java.util.Objects;
 public class RoleAndPermission extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "role_id")
-    private Roles role;
+    private Role role;
 
     @ManyToOne
     @JoinColumn(name = "permission_id")

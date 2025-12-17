@@ -1,8 +1,6 @@
 package com.practice.service.api;
 
-import com.practice.service.entities.auth.Permission;
-import com.practice.service.entities.auth.Roles;
-import com.practice.service.repositories.PermissionRepository;
+import com.practice.service.entities.auth.Role;
 import com.practice.service.repositories.RoleRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,7 +20,7 @@ public class RoleController {
 
     @GetMapping
     public ResponseEntity<?> getRoles() {
-        List<Roles> roles = roleRepository.findAll();
+        List<Role> roles = roleRepository.findAll();
         return ResponseEntity.ok(roles);
     }
 }
