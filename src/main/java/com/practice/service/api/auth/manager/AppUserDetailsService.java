@@ -1,9 +1,9 @@
 package com.practice.service.api.auth.manager;
 
 import com.practice.service.entities.auth.User;
+import com.practice.service.exceptions.UnAuthenticationException;
 import com.practice.service.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -19,8 +19,8 @@ public class AppUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(usernameOrEmail)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + usernameOrEmail));
+                .orElseThrow(() -> new UnAuthenticationException("User not found: " + usernameOrEmail));
 
-        return new AppUserDetails(user, List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
+        return new AppUserDetails(user, List.of());
     }
 }
