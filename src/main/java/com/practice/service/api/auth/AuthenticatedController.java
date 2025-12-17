@@ -1,20 +1,15 @@
 package com.practice.service.api.auth;
-
 import com.practice.service.dto.AuthenticationResponse;
 import com.practice.service.entities.auth.User;
 import com.practice.service.repositories.UserRepository;
+import com.practice.service.utils.UserUtil;
 import io.jsonwebtoken.JwtException;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/authenticatedUser")
@@ -26,19 +21,9 @@ public class AuthenticatedController {
     }
 
     @GetMapping
-    @PreAuthorize("hasPermission('ABC')")
     public ResponseEntity<?> getAuthenticatedUser(){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null) {
-            throw new JwtException("Authentication is null");
-        }
-
-        List<String> authorizeNames = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
-
-        String email = authentication.getName();
+        List<String> authorizeNames = UserUtil.getAuthorities();
+        String email = UserUtil.getUsername();
         User user = userRepository.findByEmail(email).orElseThrow(() -> new JwtException("User not found"));
         return ResponseEntity.ok(mapToResponse(user, authorizeNames));
     }
