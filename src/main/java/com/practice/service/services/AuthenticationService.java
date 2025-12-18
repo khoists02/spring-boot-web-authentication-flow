@@ -19,8 +19,6 @@ import com.practice.service.utils.UserUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,14 +27,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.util.UUID;
 
 @Service
 public class AuthenticationService {
-    private final String appSecretKey = "MySuperSecretKeyForJWTThatIsAtLeast32Bytes!";
-    private final Key key = Keys.hmacShaKeyFor(appSecretKey.getBytes(StandardCharsets.UTF_8));
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private JwtUtil jwtUtil;
@@ -98,7 +92,7 @@ public class AuthenticationService {
         }
         Claims claims;
         try {
-            claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+            claims = jwtUtil.parser().parseClaimsJws(token).getBody();
         } catch (ExpiredJwtException e) {
             SecurityContextHolder.clearContext();
             throw new JwtAuthenticationException("Refresh Token expired", "11003"); // revoled user.
