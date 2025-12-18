@@ -8,8 +8,11 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
 import java.util.Optional;
@@ -58,14 +61,20 @@ public class AuditAspect {
             long start = System.currentTimeMillis();
             Object result = joinPoint.proceed(); // 👉 method chạy ở đây
             auditLog.setStatus("SUCCESS");
-            auditLogRepository.save(auditLog);
+            saveAudit(auditLog);
             logger.info("Audit took {} ms", System.currentTimeMillis() - start);
             return result;
         } catch (Exception ex) {
             auditLog.setStatus("FAILED");
             auditLog.setError(ex.getMessage());
-            auditLogRepository.save(auditLog);
+            saveAudit(auditLog);
             throw ex;
         }
+    }
+
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void saveAudit(AuditLog log) {
+        auditLogRepository.save(log);
     }
 }
