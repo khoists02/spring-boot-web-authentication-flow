@@ -10,6 +10,7 @@
  */
 package com.practice.service.api;
 
+import com.practice.service.support.Audit;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,8 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/test")
 public class TestController {
 
+    @Audit(action = "Test")
     @GetMapping
-    @PreAuthorize("hasPermission('viewUser')")
+    @PreAuthorize("hasPermission('supperAdmin')")
     public ResponseEntity<?> test() {
         return ResponseEntity.ok("hello");
     }
