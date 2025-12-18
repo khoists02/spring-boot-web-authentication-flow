@@ -2,6 +2,7 @@ package com.practice.service.support;
 
 import com.practice.service.entities.AuditLog;
 import com.practice.service.repositories.AuditLogRepository;
+import com.practice.service.services.AuditService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -20,61 +21,68 @@ import java.util.Optional;
 @Aspect
 @Component
 public class AuditAspect {
-    private final AuditLogRepository auditLogRepository;
+    private final AuditService auditService;
     private final HttpServletRequest request;
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    public AuditAspect(HttpServletRequest request, AuditLogRepository auditLogRepository) {
-        this.auditLogRepository = auditLogRepository;
+    public AuditAspect(AuditService auditService, HttpServletRequest request) {
+        this.auditService = auditService;
         this.request = request;
-    }
-
-    private String getClientIp(HttpServletRequest request) {
-
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
-            return xForwardedFor.split(",")[0].trim(); // client IP đầu tiên
-        }
-
-        String xRealIp = request.getHeader("X-Real-IP");
-        if (xRealIp != null && !xRealIp.isEmpty()) {
-            return xRealIp;
-        }
-
-        return request.getRemoteAddr();
     }
 
     @Around("@annotation(audit)")
     public Object audit(ProceedingJoinPoint joinPoint, Audit audit) throws Throwable {
-        String ip = getClientIp(request);
-        String username = Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
-                .map(Principal::getName)
-                .orElse("Anonymous");
 
-        AuditLog auditLog = new AuditLog();
-        auditLog.setIpAddress(ip);
-        auditLog.setUsername(username);
-        auditLog.setAction(audit.action());
-        auditLog.setResource(joinPoint.getSignature().toShortString());
+        long start = System.currentTimeMillis();
+
+        AuditLog log = buildBaseAuditLog(joinPoint, audit);
 
         try {
-            long start = System.currentTimeMillis();
-            Object result = joinPoint.proceed(); // 👉 method chạy ở đây
-            auditLog.setStatus("SUCCESS");
-            saveAudit(auditLog);
-            logger.info("Audit took {} ms", System.currentTimeMillis() - start);
+            Object result = joinPoint.proceed();
+
+            log.setStatus("SUCCESS");
+            auditService.save(log);
+
+            logger.debug("Audit success [{}] took {} ms",
+                    log.getAction(),
+                    System.currentTimeMillis() - start);
+
             return result;
+
         } catch (Exception ex) {
-            auditLog.setStatus("FAILED");
-            auditLog.setError(ex.getMessage());
-            saveAudit(auditLog);
+            log.setStatus("FAILED");
+            log.setError(ex.getMessage());
+
+            auditService.save(log);
             throw ex;
         }
     }
 
-    @Async
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void saveAudit(AuditLog log) {
-        auditLogRepository.save(log);
+    private AuditLog buildBaseAuditLog(
+            ProceedingJoinPoint joinPoint,
+            Audit audit) {
+
+        AuditLog log = new AuditLog();
+        log.setIpAddress(getClientIp(request));
+        log.setUsername(getUsername());
+        log.setAction(audit.action());
+        log.setResource(joinPoint.getSignature().toShortString());
+
+        return log;
+    }
+
+    private String getUsername() {
+        return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                .map(Principal::getName)
+                .orElse("Anonymous");
+    }
+
+    private String getClientIp(HttpServletRequest request) {
+        String xff = request.getHeader("X-Forwarded-For");
+        if (xff != null && !xff.isBlank()) {
+            return xff.split(",")[0].trim();
+        }
+        String xRealIp = request.getHeader("X-Real-IP");
+        return xRealIp != null ? xRealIp : request.getRemoteAddr();
     }
 }
