@@ -15,4 +15,5 @@ public class AuditLog extends BaseEntity {
     private String resource;
     private String status;
     private String error;
+    private String ipAddress;
 }

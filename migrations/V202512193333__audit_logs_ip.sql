@@ -1,0 +1,1 @@
+alter table audit_logs add column ip_address varchar null;

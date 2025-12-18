@@ -13,6 +13,7 @@ package com.practice.service.api.auth;
 import com.practice.service.dto.AuthenticationRequest;
 import com.practice.service.exceptions.UnAuthenticationException;
 import com.practice.service.services.AuthenticationService;
+import com.practice.service.support.Audit;
 import com.practice.service.support.RateLimit;
 import com.practice.service.support.RateLimitType;
 import jakarta.servlet.http.HttpServletResponse;
@@ -40,6 +41,7 @@ public class AuthenticationController {
             duration = 60,
             type = RateLimitType.IP
     )
+    @Audit(action = "login")
     public ResponseEntity<?> login(@Valid @RequestBody AuthenticationRequest authenticationRequest, HttpServletResponse response) {
         try {
             authenticationService.authenticate(

@@ -10,6 +10,7 @@
  */
 package com.practice.service.api;
 
+import com.practice.service.exceptions.BadRequestException;
 import com.practice.service.support.Audit;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,8 +24,8 @@ public class TestController {
 
     @Audit(action = "Test")
     @GetMapping
-    @PreAuthorize("hasPermission('supperAdmin')")
+    @PreAuthorize("hasPermission('viewUser')")
     public ResponseEntity<?> test() {
-        return ResponseEntity.ok("hello");
+        throw new BadRequestException("Test error");
     }
 }
