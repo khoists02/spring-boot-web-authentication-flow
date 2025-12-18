@@ -34,15 +34,33 @@ public class JwtUtil {
     public String generateToken(User user) {
 
         Map<String, Object> claims = new HashMap<>();
-        claims.put("usr", "");
+        claims.put("usr", user.getId().toString());
+        claims.put("type", "access_token");
 
-        // 1 hour
-        long expiration = 3600_000;
+        // 15 minutes
+        long EXPIRATION_ACCESS_TOKEN = 900_000;
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(user.getEmail())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_ACCESS_TOKEN))
+                .signWith(key)
+                .compact();
+    }
+
+    public String generateRefreshToken(User user) {
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("usr", user.getId().toString());
+        claims.put("type", "refresh_token");
+
+        // 1 hour
+        long EXPIRATION_REFRESH_TOKEN = 3600_000;
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(user.getEmail())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_REFRESH_TOKEN))
                 .signWith(key)
                 .compact();
     }

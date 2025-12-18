@@ -17,7 +17,9 @@ import com.practice.service.repositories.UserRepository;
 import com.practice.service.utils.JwtUtil;
 import com.practice.service.utils.UserUtil;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -48,14 +50,32 @@ public class AuthenticationService {
             throw new UnAuthenticationException("Password do not match");
         }
         String token = jwtUtil.generateToken(user);
-        injectCookie(token, response);
+        String refreshToken = jwtUtil.generateRefreshToken(user);
+        injectAccessTokenToCookie(token, response);
+        injectRefreshTokenToCookie(refreshToken, response);
+    }
+
+    public void logout(HttpServletResponse response) {
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            injectAccessTokenToCookie("", response);
+            injectRefreshTokenToCookie("", response);
+            SecurityContextHolder.clearContext();
+        }
     }
 
 
-    private void injectCookie(String token, HttpServletResponse response) {
-        Cookie cookie = new Cookie("JWT", token);
+    private void injectAccessTokenToCookie(String token, HttpServletResponse response) {
+        Cookie cookie = new Cookie("jwt.token", token);
         cookie.setHttpOnly(true);
-        cookie.setPath("/");
+        cookie.setPath("/auth");
+        cookie.setMaxAge(900); // 1 hour
+        response.addCookie(cookie);
+    }
+
+    private void injectRefreshTokenToCookie(String refreshToken, HttpServletResponse response) {
+        Cookie cookie = new Cookie("jwt.refresh", refreshToken);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/auth");
         cookie.setMaxAge(3600); // 1 hour
         response.addCookie(cookie);
     }

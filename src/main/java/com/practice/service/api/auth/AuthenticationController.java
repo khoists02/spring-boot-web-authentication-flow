@@ -11,6 +11,7 @@
 package com.practice.service.api.auth;
 
 import com.practice.service.dto.AuthenticationRequest;
+import com.practice.service.dto.ResponseMessage;
 import com.practice.service.exceptions.UnAuthenticationException;
 import com.practice.service.services.AuthenticationService;
 import com.practice.service.support.Audit;
@@ -20,13 +21,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/login")
+@RequestMapping("/auth")
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
@@ -34,7 +32,7 @@ public class AuthenticationController {
         this.authenticationService = authenticationService;
     }
 
-    @PostMapping
+    @PostMapping("/login")
     @RateLimit(
             key = "login",
             limit = 15,
@@ -42,15 +40,21 @@ public class AuthenticationController {
             type = RateLimitType.IP
     )
     @Audit(action = "login")
-    public ResponseEntity<?> login(@Valid @RequestBody AuthenticationRequest authenticationRequest, HttpServletResponse response) {
+    public ResponseEntity<?> login(@Valid @RequestBody AuthenticationRequest authenticationRequest) {
         try {
             authenticationService.authenticate(
                     authenticationRequest.getUsername(),
                     authenticationRequest.getPassword()
             );
-            return ResponseEntity.status(HttpStatus.OK).body("Success");
+            return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage("success"));
         } catch (Exception ex) {
             throw new UnAuthenticationException(ex.getMessage());
         }
+    }
+
+    @DeleteMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+        authenticationService.logout(response);
+        return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage("Success"));
     }
 }

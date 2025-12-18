@@ -14,6 +14,7 @@ import com.practice.service.api.auth.manager.AppUserDetails;
 import com.practice.service.entities.auth.Permission;
 import com.practice.service.entities.auth.User;
 import com.practice.service.exceptions.BadRequestException;
+import com.practice.service.exceptions.UnAuthenticationException;
 import com.practice.service.repositories.PermissionRepository;
 import com.practice.service.repositories.UserRepository;
 import com.practice.service.utils.JwtUtil;
@@ -52,7 +53,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return request.getServletPath().startsWith("/login") || request.getServletPath().startsWith("/register");
+        return request.getServletPath().startsWith("/auth") || request.getServletPath().startsWith("/register") || request.getServletPath().startsWith("/public");
     }
 
     @Override
@@ -60,11 +61,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws IOException, jakarta.servlet.ServletException {
        try {
-           String token = detectToken(request);
-
-           if (token != null && jwtUtil.validateToken(token)) {
-               String username = jwtUtil.getUsername(token);
-               User user = userRepository.findByEmail(username).orElseThrow(() -> new BadRequestException("User not found"));
+           String accessToken = resolvedAccessToken(request);
+           if (accessToken != null && jwtUtil.validateToken(accessToken)) {
+               String username = jwtUtil.getUsername(accessToken);
+               User user = userRepository.findByEmail(username).orElseThrow(() -> new UnAuthenticationException("User not found"));
 
                Set<Permission> permissionSet = permissionRepository.findAllPermissionsByUserId(user.getId());
                Set<GrantedAuthority> authorities =
@@ -81,19 +81,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                SecurityContextHolder.getContext().setAuthentication(authentication);
            }
            filterChain.doFilter(request, response);
-
-       }  catch (Exception e) {
-           logger.error(e.getMessage());
-           SecurityContextHolder.clearContext();
-           filterChain.doFilter(request, response);
+       }  finally {
+           SecurityContextHolder.clearContext(); // all request should clear context for security.
        }
     }
 
-    private String detectToken(HttpServletRequest request) {
+    private String resolvedAccessToken(HttpServletRequest request) {
         String token = null;
         if (request.getCookies() != null) {
             for (Cookie c : request.getCookies()) {
-                if (c.getName().equals("JWT")) token = c.getValue();
+                if (c.getName().equals("jwt.token")) token = c.getValue();
             }
         }
         return token;
