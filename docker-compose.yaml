@@ -1,12 +1,15 @@
 services:
-#  nginx:
-#    image: nginx
-#    ports:
-#      - "80:80"
-#      - "443:443"
-#    volumes:
-#      - ./docker/nginx/conf:/etc/nginx/conf.d
-#      - ./docker/nginx/certs:/ssl
+  nginx:
+    image: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/conf:/etc/nginx/conf.d
+      - ./docker/nginx/certs:/ssl
+    networks:
+      - app-network
+
   rabbitmq:
     image: rabbitmq:3.12-management
     container_name: rabbitmq
@@ -90,8 +93,6 @@ services:
     ports:
       - "8081:8080"
       - "5005:5005"
-    volumes:
-      - ./user-api:/app    # bind-mount local code vào container
     depends_on:
       - postgres
     networks:
