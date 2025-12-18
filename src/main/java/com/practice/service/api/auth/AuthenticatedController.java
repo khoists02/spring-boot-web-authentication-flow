@@ -11,7 +11,7 @@
 package com.practice.service.api.auth;
 import com.practice.service.dto.AuthenticationResponse;
 import com.practice.service.entities.auth.User;
-import com.practice.service.exceptions.UnAuthenticationException;
+import com.practice.service.exceptions.JwtAuthenticationException;
 import com.practice.service.repositories.UserRepository;
 import com.practice.service.utils.UserUtil;
 import org.slf4j.Logger;
@@ -39,7 +39,7 @@ public class AuthenticatedController {
     public ResponseEntity<?> getAuthenticatedUser(){
         List<String> authorizeNames = UserUtil.getAuthorities();
         String email = UserUtil.getUsername();
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new UnAuthenticationException("User not found"));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new JwtAuthenticationException("Unauthenticated", "11000"));
         return ResponseEntity.ok(mapToResponse(user, authorizeNames));
     }
 

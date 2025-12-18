@@ -14,6 +14,7 @@ import com.practice.service.dto.ErrorResponse;
 import com.practice.service.exceptions.BadRequestException;
 import com.practice.service.exceptions.EmailAlreadyExistsException;
 import com.practice.service.exceptions.RateLimitExceededException;
+import com.practice.service.exceptions.JwtAuthenticationException;
 import jakarta.persistence.EntityNotFoundException;
 import org.hibernate.exception.SQLGrammarException;
 import org.springframework.dao.DataAccessException;
@@ -41,6 +42,7 @@ public class GlobalExceptionHandler {
         error.setErrorCode(errorCode);
         return ResponseEntity.status(status).body(error);
     }
+
     // ================= Specific Exceptions =================
     @ExceptionHandler(RateLimitExceededException.class)
     public ResponseEntity<Map<String, Object>> handleRateLimit(RateLimitExceededException ex) {
@@ -50,6 +52,15 @@ public class GlobalExceptionHandler {
                         "error", "RATE_LIMIT_EXCEEDED",
                         "retryAfter", ex.getRetryAfter()
                 ));
+    }
+
+    @ExceptionHandler(JwtAuthenticationException.class)
+    public ResponseEntity<?> handleUnAuthentication(JwtAuthenticationException ex) {
+        return buildErrorResponse(
+                ex.getMessage(),
+                ex.getErrorCode(),
+                HttpStatus.UNAUTHORIZED
+        );
     }
 
     @ExceptionHandler(EmailAlreadyExistsException.class)

@@ -11,10 +11,10 @@
 package com.practice.service.utils;
 
 import com.practice.service.entities.auth.User;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
+import com.practice.service.exceptions.JwtAuthenticationException;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
@@ -28,39 +28,35 @@ import java.util.stream.Collectors;
 
 @Component
 public class JwtUtil {
-    private final String SECRET = "MySuperSecretKeyForJWTThatIsAtLeast32Bytes!";
-    private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+    private final String appSecretKey = "MySuperSecretKeyForJWTThatIsAtLeast32Bytes!";
+    private final Key key = Keys.hmacShaKeyFor(appSecretKey.getBytes(StandardCharsets.UTF_8));
+    @Value("${APP_ACCESS_TOKEN}")
+    private long accessExpiration;
+    @Value("${APP_REFRESH_TOKEN}")
+    private long refreshExpiration;
 
     public String generateToken(User user) {
-
         Map<String, Object> claims = new HashMap<>();
         claims.put("usr", user.getId().toString());
         claims.put("type", "access_token");
-
-        // 15 minutes
-        long EXPIRATION_ACCESS_TOKEN = 900_000;
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(user.getEmail())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_ACCESS_TOKEN))
+                .setExpiration(new Date(System.currentTimeMillis() + accessExpiration))
                 .signWith(key)
                 .compact();
     }
 
     public String generateRefreshToken(User user) {
-
         Map<String, Object> claims = new HashMap<>();
         claims.put("usr", user.getId().toString());
         claims.put("type", "refresh_token");
-
-        // 1 hour
-        long EXPIRATION_REFRESH_TOKEN = 3600_000;
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(user.getEmail())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_REFRESH_TOKEN))
+                .setExpiration(new Date(System.currentTimeMillis() + refreshExpiration))
                 .signWith(key)
                 .compact();
     }
@@ -78,12 +74,18 @@ public class JwtUtil {
                 .collect(Collectors.toList());
     }
 
+    public JwtParser parser() {
+        return Jwts.parserBuilder().setSigningKey(key).build();
+    }
+
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
-        } catch (JwtException e) {
+        } catch (ExpiredJwtException e) {
             return false;
+        } catch (JwtException e) {
+            throw new JwtAuthenticationException("Invalid Token", "11002"); // revoled user.
         }
     }
 

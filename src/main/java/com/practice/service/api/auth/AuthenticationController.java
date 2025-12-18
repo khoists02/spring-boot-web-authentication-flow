@@ -12,11 +12,12 @@ package com.practice.service.api.auth;
 
 import com.practice.service.dto.AuthenticationRequest;
 import com.practice.service.dto.ResponseMessage;
-import com.practice.service.exceptions.UnAuthenticationException;
+import com.practice.service.exceptions.JwtAuthenticationException;
 import com.practice.service.services.AuthenticationService;
 import com.practice.service.support.Audit;
 import com.practice.service.support.RateLimit;
 import com.practice.service.support.RateLimitType;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -48,7 +49,7 @@ public class AuthenticationController {
             );
             return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage("success"));
         } catch (Exception ex) {
-            throw new UnAuthenticationException(ex.getMessage());
+            throw new JwtAuthenticationException(ex.getMessage(), "11001");
         }
     }
 
@@ -56,5 +57,11 @@ public class AuthenticationController {
     public ResponseEntity<?> logout(HttpServletResponse response) {
         authenticationService.logout(response);
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage("Success"));
+    }
+
+    @PutMapping("/refresh")
+    public ResponseEntity<?> refresh(HttpServletRequest request,HttpServletResponse response) {
+        authenticationService.refreshToken(request,response);
+        return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage("Refresh Token success"));
     }
 }

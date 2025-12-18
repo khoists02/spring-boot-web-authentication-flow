@@ -1,6 +1,7 @@
 package com.practice.service.api.auth.manager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.practice.service.exceptions.JwtAuthenticationException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.AuthenticationException;
@@ -8,7 +9,6 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Map;
 
 @Component
 public class UserAuthenticationEntryPoint implements AuthenticationEntryPoint {
@@ -19,20 +19,22 @@ public class UserAuthenticationEntryPoint implements AuthenticationEntryPoint {
                          HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
 
-        response.setContentType("application/json");
+        String errorCode = "401"; // default unauthorized
+        String message = authException.getMessage();
+
+        if (authException instanceof JwtAuthenticationException jwtEx) {
+            errorCode = jwtEx.getErrorCode();
+            message = jwtEx.getMessage();
+        }
+
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
 
-        Map<String, Object> body = Map.of(
-                "status", 401,
-                "error", "UNAUTHORIZED",
-                "message", authException.getMessage(),
-                "path", request.getRequestURI()
-        );
-
-        String json = objectMapper.writeValueAsString(body);
-
-        response.setContentLength(json.getBytes().length);
-        response.getWriter().write(json);
-        response.getWriter().flush();
+        response.getWriter().write("""
+        {
+          "errorCode": "%s",
+          "message": "%s"
+        }
+    """.formatted(errorCode, message));
     }
 }
