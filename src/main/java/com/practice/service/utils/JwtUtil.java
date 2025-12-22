@@ -36,9 +36,8 @@ public class JwtUtil {
     private long accessExpiration;
     @Value("${MCL_REFRESH_TOKEN_MINUTES}")
     private long refreshExpiration;
-    @Value("${MCL_JWT_SECRET_KEY}")
-    private String appSecretKey;
-
+//    @Value("${MCL_JWT_SECRET_KEY}")
+    private final String appSecretKey = "MySuperSecretKeyForJWTThatIsAtLeast32Bytes!";
     private final Key key = Keys.hmacShaKeyFor(appSecretKey.getBytes(StandardCharsets.UTF_8));
 
 
