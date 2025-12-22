@@ -14,6 +14,8 @@ import com.practice.service.entities.auth.User;
 import com.practice.service.exceptions.JwtAuthenticationException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
@@ -29,17 +31,23 @@ import java.util.stream.Collectors;
 
 @Component
 public class JwtUtil {
-    private final String appSecretKey = "MySuperSecretKeyForJWTThatIsAtLeast32Bytes!";
-    private final Key key = Keys.hmacShaKeyFor(appSecretKey.getBytes(StandardCharsets.UTF_8));
-    @Value("${APP_ACCESS_TOKEN}")
+    private final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
+    @Value("${MCL_ACCESS_TOKEN_MINUTES}")
     private long accessExpiration;
-    @Value("${APP_REFRESH_TOKEN}")
+    @Value("${MCL_REFRESH_TOKEN_MINUTES}")
     private long refreshExpiration;
+    @Value("${MCL_JWT_SECRET_KEY}")
+    private String appSecretKey;
+
+    private final Key key = Keys.hmacShaKeyFor(appSecretKey.getBytes(StandardCharsets.UTF_8));
+
 
     public String generateToken(User user) {
+        logger.info("Start generate token for user: {}", user.getUsername());
         Map<String, Object> claims = new HashMap<>();
         claims.put("usr", user.getId().toString());
         claims.put("type", "access_token");
+
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(user.getEmail())
