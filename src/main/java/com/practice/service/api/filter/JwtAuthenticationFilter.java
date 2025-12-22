@@ -11,9 +11,7 @@
 package com.practice.service.api.filter;
 
 import com.practice.service.api.auth.manager.AppUserDetails;
-import com.practice.service.entities.auth.Permission;
 import com.practice.service.entities.auth.User;
-import com.practice.service.exceptions.BadRequestException;
 import com.practice.service.exceptions.JwtAuthenticationException;
 import com.practice.service.repositories.PermissionRepository;
 import com.practice.service.repositories.UserRepository;
@@ -26,6 +24,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -61,50 +61,48 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws IOException, jakarta.servlet.ServletException {
-        logger.info("jwt filter for url {}", request.getRequestURI());
+        logger.info("JwtAuthenticationFilter");
         String accessToken = resolvedAccessToken(request);
-
+        if (accessToken == null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
         try {
             jwtUtil.parser().parseClaimsJws(accessToken);
-            // TODO: can't throw exception. why ?
         } catch (ExpiredJwtException e) {
             throw new JwtAuthenticationException(
-                    "Expired Token",
-                    "11001" // FE → refresh token
+                    "EXPIRED_TOKEN"
             );
-
-        } catch (JwtException e) {
-            SecurityContextHolder.clearContext();
+        } catch (JwtException | IllegalArgumentException e) {
             throw new JwtAuthenticationException(
-                    "Invalid Token",
-                    "11002" // FE → logout
-            );
-
-        } catch (IllegalArgumentException e) {
-            SecurityContextHolder.clearContext();
-            throw new JwtAuthenticationException(
-                    "Invalid Token",
-                    "11003" // malformed / empty
+                    "INVALID_TOKEN"
             );
         }
+        try {
+            String username = jwtUtil.getUsername(accessToken);
+            User user = userRepository.findByEmail(username)
+                    .orElseThrow(() -> new JwtAuthenticationException("UNAUTHENTICATED"));
 
-        String username = jwtUtil.getUsername(accessToken);
-        User user = userRepository.findByEmail(username).orElseThrow(() -> new JwtAuthenticationException("Unauthenticated", "11000"));
+            Set<GrantedAuthority> authorities =
+                    permissionRepository.findAllPermissionsByUserId(user.getId())
+                            .stream()
+                            .map(p -> new SimpleGrantedAuthority(p.getName()))
+                            .collect(Collectors.toSet());
 
-        Set<Permission> permissionSet = permissionRepository.findAllPermissionsByUserId(user.getId());
-        Set<GrantedAuthority> authorities =
-                permissionSet.stream()
-                        .map(p -> new SimpleGrantedAuthority(p.getName()))
-                        .collect(Collectors.toSet());
-        AppUserDetails userDetails = new AppUserDetails(user, authorities);
-        Authentication authentication =
-                new UsernamePasswordAuthenticationToken(
-                        userDetails,          // principal
-                        null,                 // credentials
-                        userDetails.getAuthorities()
-                );
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        filterChain.doFilter(request, response);
+            Authentication authentication =
+                    new UsernamePasswordAuthenticationToken(
+                            new AppUserDetails(user, authorities),
+                            null,
+                            authorities
+                    );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            filterChain.doFilter(request, response);
+        } catch (Exception e) {
+            logger.error("JwtAuthenticationFilter", e);
+        } finally {
+            logger.info("JwtAuthenticationFilter complete");
+        }
+
     }
 
     private String resolvedAccessToken(HttpServletRequest request) {

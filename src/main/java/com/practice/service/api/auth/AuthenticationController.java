@@ -49,7 +49,7 @@ public class AuthenticationController {
             );
             return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage("success"));
         } catch (Exception ex) {
-            throw new JwtAuthenticationException(ex.getMessage(), "11001");
+            throw new JwtAuthenticationException(ex.getMessage());
         }
     }
 

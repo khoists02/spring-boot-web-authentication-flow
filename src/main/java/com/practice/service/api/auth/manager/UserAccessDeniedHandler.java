@@ -1,41 +1,35 @@
 package com.practice.service.api.auth.manager;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
-
+import org.springframework.web.servlet.HandlerExceptionResolver;
 import java.io.IOException;
-import java.util.Map;
 
 @Component
 public class UserAccessDeniedHandler implements AccessDeniedHandler {
+    private final Logger logger = LoggerFactory.getLogger(UserAuthenticationEntryPoint.class);
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    @Qualifier("handlerExceptionResolver")
+    private HandlerExceptionResolver exceptionResolver;
 
     @Override
     public void handle(HttpServletRequest request,
                        HttpServletResponse response,
                        AccessDeniedException accessDeniedException) throws IOException {
+        exceptionResolver.resolveException(request, response, null, accessDeniedException);
 
-        // set header JSON
-        response.setContentType("application/json");
-        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-
-        Map<String, Object> body = Map.of(
-                "status", 403,
-                "error", "FORBIDDEN",
-                "message", accessDeniedException.getMessage(),
-                "path", request.getRequestURI()
-        );
-
-        String json = objectMapper.writeValueAsString(body);
-
-        // commit response đúng cách
-        response.setContentLength(json.getBytes().length);
-        response.getWriter().write(json);
-        response.getWriter().flush();  // << quan trọng
+        try {
+            response.flushBuffer();
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 }

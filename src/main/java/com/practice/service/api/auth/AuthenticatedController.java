@@ -39,7 +39,7 @@ public class AuthenticatedController {
     public ResponseEntity<?> getAuthenticatedUser(){
         List<String> authorizeNames = UserUtil.getAuthorities();
         String email = UserUtil.getUsername();
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new JwtAuthenticationException("Unauthenticated", "11000"));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new JwtAuthenticationException("UNAUTHENTICATED"));
         return ResponseEntity.ok(mapToResponse(user, authorizeNames));
     }
 

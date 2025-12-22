@@ -48,11 +48,11 @@ public class AuthenticationService {
     @Transactional
     public void authenticate(String username, String password) {
         if (!userRepository.existsByEmail(username))  {
-            throw new JwtAuthenticationException("Unauthenticated", "11000");
+            throw new JwtAuthenticationException("UNAUTHENTICATED");
         }
-        User user = userRepository.findByEmail(username).orElseThrow(() -> new JwtAuthenticationException("Unauthenticated", "11000"));
+        User user = userRepository.findByEmail(username).orElseThrow(() -> new JwtAuthenticationException("UNAUTHENTICATED"));
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new JwtAuthenticationException("Unauthenticated", "11000");
+            throw new JwtAuthenticationException("UNAUTHENTICATED");
         }
         String token = jwtUtil.generateToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
@@ -61,11 +61,8 @@ public class AuthenticationService {
     }
 
     public void logout(HttpServletResponse response) {
-        if (SecurityContextHolder.getContext().getAuthentication() != null) {
-            injectAccessTokenToCookie("", response);
-            injectRefreshTokenToCookie("", response);
-            SecurityContextHolder.clearContext();
-        }
+        injectAccessTokenToCookie("", response);
+        injectRefreshTokenToCookie("", response);
     }
 
 
@@ -88,17 +85,15 @@ public class AuthenticationService {
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) {
         String token = resolvedToken(request, "refresh");
         if (token == null) {
-            throw new JwtAuthenticationException("Invalid Token", "11002"); // revoled user.
+            throw new JwtAuthenticationException("INVALID_TOKEN"); // revoled user.
         }
         Claims claims;
         try {
             claims = jwtUtil.parser().parseClaimsJws(token).getBody();
         } catch (ExpiredJwtException e) {
-            SecurityContextHolder.clearContext();
-            throw new JwtAuthenticationException("Refresh Token expired", "11003"); // revoled user.
+            throw new JwtAuthenticationException("REFRESH_TOKEN_EXPIRED"); // revoled user.
         } catch (JwtException e) {
-            SecurityContextHolder.clearContext();
-            throw new JwtAuthenticationException("Invalid Token", "11003"); // revoled user.
+            throw new JwtAuthenticationException("INVALID_TOKEN"); // revoled user.
         }
         User user = userRepository.getReferenceById(UUID.fromString(claims.get("usr").toString()));
         String newAccessToken = jwtUtil.generateToken(user);

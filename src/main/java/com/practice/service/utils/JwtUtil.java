@@ -85,7 +85,7 @@ public class JwtUtil {
         } catch (ExpiredJwtException e) {
             return false;
         } catch (JwtException e) {
-            throw new JwtAuthenticationException("Invalid Token", "11002"); // revoled user.
+            throw new JwtAuthenticationException("INVALID_TOKEN"); // revoled user.
         }
     }
 

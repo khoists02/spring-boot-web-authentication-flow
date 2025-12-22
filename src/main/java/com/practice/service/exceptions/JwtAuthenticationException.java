@@ -10,17 +10,9 @@
  */
 package com.practice.service.exceptions;
 
-import org.springframework.security.core.AuthenticationException;
+public class JwtAuthenticationException extends RuntimeException {
 
-public class JwtAuthenticationException extends AuthenticationException {
-    private final String errorCode;
-
-    public JwtAuthenticationException(String message, String errorCode) {
+    public JwtAuthenticationException(String message) {
         super(message);
-        this.errorCode = errorCode;
-    }
-
-    public String getErrorCode() {
-        return errorCode;
     }
 }

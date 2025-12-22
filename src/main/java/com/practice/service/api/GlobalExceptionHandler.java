@@ -11,19 +11,21 @@
 package com.practice.service.api;
 
 import com.practice.service.dto.ErrorResponse;
-import com.practice.service.exceptions.BadRequestException;
-import com.practice.service.exceptions.EmailAlreadyExistsException;
-import com.practice.service.exceptions.RateLimitExceededException;
-import com.practice.service.exceptions.JwtAuthenticationException;
+import com.practice.service.exceptions.*;
 import jakarta.persistence.EntityNotFoundException;
 import org.hibernate.exception.SQLGrammarException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
+import javax.naming.InsufficientResourcesException;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.HashMap;
@@ -52,15 +54,6 @@ public class GlobalExceptionHandler {
                         "error", "RATE_LIMIT_EXCEEDED",
                         "retryAfter", ex.getRetryAfter()
                 ));
-    }
-
-    @ExceptionHandler(JwtAuthenticationException.class)
-    public ResponseEntity<?> handleUnAuthentication(JwtAuthenticationException ex) {
-        return buildErrorResponse(
-                ex.getMessage(),
-                ex.getErrorCode(),
-                HttpStatus.UNAUTHORIZED
-        );
     }
 
     @ExceptionHandler(EmailAlreadyExistsException.class)
@@ -94,7 +87,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgumentNotValidException ex) {
+    public ResponseEntity<Map<String, String>> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(error ->
                 errors.put(error.getField(), error.getDefaultMessage())
@@ -102,10 +95,30 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(errors);
     }
 
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<?> handlenotFoundError(NoHandlerFoundException ex) {
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            return buildErrorResponse("Not Found", "404", HttpStatus.NOT_FOUND);
+        }
+        return buildErrorResponse("Unauthenticated", "1000", HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(InsufficientAuthenticationException.class)
+    public ResponseEntity<?> handleInsufficientAuthenticationException(InsufficientAuthenticationException ex) {
+        return buildErrorResponse("UNAUTHENTICAED", "10000", HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<?> deniedException(AuthorizationDeniedException ex) {
+        return buildErrorResponse("ACESS_DENIED", "", HttpStatus.FORBIDDEN);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAll(Exception ex) {
-        if ("Access Denied".equals(ex.getMessage())) {
-            return buildErrorResponse(ex.getMessage(), "403", HttpStatus.UNAUTHORIZED);
+        if (ex.getMessage().equals("EXPIRED_TOKEN")) {
+            return buildErrorResponse(ex.getMessage(), "1007", HttpStatus.UNAUTHORIZED);
+        } else if (ex.getMessage().equals("INVALID_TOKEN") || ex.getMessage().equals("REFRESH_TOKEN_EXPIRED")) {
+            return buildErrorResponse("UNAUTHENTICATED", "1000", HttpStatus.UNAUTHORIZED);
         }
         return buildErrorResponse(ex.getMessage(), "500", HttpStatus.INTERNAL_SERVER_ERROR);
     }

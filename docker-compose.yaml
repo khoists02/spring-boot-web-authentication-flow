@@ -90,8 +90,8 @@ services:
       RABBITMQ_EMAIL_EXCHANGE: email.exchange
       RABBITMQ_EMAIL_ROUTING_KEY: email.send
       SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
-      APP_ACCESS_TOKEN: 900000
-      APP_REFRESH_TOKEN: 3600000
+      APP_ACCESS_TOKEN: 60000
+      APP_REFRESH_TOKEN: 300000
       APP_SECRET_KEY: "MySuperSecretKeyForJWTThatIsAtLeast32Bytes!"
     ports:
       - "8081:8080"

@@ -12,7 +12,9 @@ package com.practice.service.config;
 
 import com.practice.service.api.auth.manager.UserAccessDeniedHandler;
 import com.practice.service.api.auth.manager.UserAuthenticationEntryPoint;
+import com.practice.service.api.filter.FilterChainExceptionHanlder;
 import com.practice.service.api.filter.JwtAuthenticationFilter;
+import com.practice.service.api.filter.LogContextFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,28 +26,43 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.ExceptionTranslationFilter;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@RequiredArgsConstructor
 public class SecurityConfig {
     private final UserAccessDeniedHandler accessDeniedHandler;
     private final UserAuthenticationEntryPoint authenticationEntryPoint;
     private final JwtAuthenticationFilter jwtFilter;
+    private final FilterChainExceptionHanlder filterChainExceptionHanlder;
+    private final LogContextFilter logContextFilter;
+
+    public SecurityConfig(LogContextFilter logContextFilter, FilterChainExceptionHanlder filterChainExceptionHanlder, UserAccessDeniedHandler accessDeniedHandler, UserAuthenticationEntryPoint authenticationEntryPoint, JwtAuthenticationFilter jwtFilter) {
+        this.accessDeniedHandler = accessDeniedHandler;
+        this.authenticationEntryPoint = authenticationEntryPoint;
+        this.jwtFilter = jwtFilter;
+        this.filterChainExceptionHanlder = filterChainExceptionHanlder;
+        this.logContextFilter = logContextFilter;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**", "/register/**", "/public/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(logContextFilter, AuthorizationFilter.class)
+                .addFilterBefore(jwtFilter, AuthorizationFilter.class)
+                .addFilterAfter(filterChainExceptionHanlder, ExceptionTranslationFilter.class)
                 .exceptionHandling(ex -> ex
-                        .accessDeniedHandler(accessDeniedHandler)       // 403
-                        .authenticationEntryPoint(authenticationEntryPoint) // 401
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler)
                 );
         return http.build();
     }

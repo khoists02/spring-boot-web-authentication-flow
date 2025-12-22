@@ -20,7 +20,7 @@ public class AppUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(usernameOrEmail)
-                .orElseThrow(() -> new JwtAuthenticationException("Unauthenticated", "11000"));
+                .orElseThrow(() -> new JwtAuthenticationException("UNAUTHENTICATED"));
 
         return new AppUserDetails(user, List.of(new SimpleGrantedAuthority("ROLE_USER")));
     }

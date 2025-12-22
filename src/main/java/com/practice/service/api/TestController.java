@@ -24,8 +24,8 @@ public class TestController {
 
     @Audit(action = "Test")
     @GetMapping
-    @PreAuthorize("hasPermission('viewUser')")
+    @PreAuthorize("hasPermission('admin')")
     public ResponseEntity<?> test() {
-        throw new BadRequestException("Test error");
+        return ResponseEntity.ok().build();
     }
 }
