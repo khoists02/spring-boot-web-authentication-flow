@@ -100,19 +100,22 @@ public class GlobalExceptionHandler {
         if (SecurityContextHolder.getContext().getAuthentication() != null) {
             return buildErrorResponse("Not Found", "404", HttpStatus.NOT_FOUND);
         }
-        return buildErrorResponse("Unauthenticated", "1000", HttpStatus.UNAUTHORIZED);
+        return buildErrorResponse("UNAUTHENTICAED", "1000", HttpStatus.UNAUTHORIZED);
     }
 
+    // Unauthentication all resouces.
     @ExceptionHandler(InsufficientAuthenticationException.class)
     public ResponseEntity<?> handleInsufficientAuthenticationException(InsufficientAuthenticationException ex) {
         return buildErrorResponse("UNAUTHENTICAED", "10000", HttpStatus.UNAUTHORIZED);
     }
 
+    // Access Deniend
     @ExceptionHandler(AuthorizationDeniedException.class)
     public ResponseEntity<?> deniedException(AuthorizationDeniedException ex) {
         return buildErrorResponse("ACESS_DENIED", "", HttpStatus.FORBIDDEN);
     }
 
+    // Exception Handler
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAll(Exception ex) {
         if (ex.getMessage().equals("EXPIRED_TOKEN")) {
@@ -120,6 +123,6 @@ public class GlobalExceptionHandler {
         } else if (ex.getMessage().equals("INVALID_TOKEN") || ex.getMessage().equals("REFRESH_TOKEN_EXPIRED")) {
             return buildErrorResponse("UNAUTHENTICATED", "1000", HttpStatus.UNAUTHORIZED);
         }
-        return buildErrorResponse(ex.getMessage(), "500", HttpStatus.INTERNAL_SERVER_ERROR);
+        return buildErrorResponse(ex.getMessage(), "", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
