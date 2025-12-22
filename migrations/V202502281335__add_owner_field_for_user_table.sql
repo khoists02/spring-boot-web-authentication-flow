@@ -1,1 +1,0 @@
-ALTER TABLE users add COLUMN owner bool default false;

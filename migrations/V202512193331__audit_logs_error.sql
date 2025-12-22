@@ -1,1 +1,0 @@
-alter table audit_logs add column error varchar(500) null;
