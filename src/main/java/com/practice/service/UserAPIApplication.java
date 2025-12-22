@@ -12,8 +12,20 @@ package com.practice.service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
+@EntityScan(basePackages = {
+        "com.practice.shared.domain.entities",
+        "com.practice.service.entities"
+})
+@EnableJpaRepositories(basePackages = {
+        "com.practice.shared.domain.repositories",
+        "com.practice.service.repositories"
+})
+@ComponentScan(basePackages = {"com.practice.shared", "com.practice.service"})
 public class UserAPIApplication {
 
     public static void main(String[] args) {
