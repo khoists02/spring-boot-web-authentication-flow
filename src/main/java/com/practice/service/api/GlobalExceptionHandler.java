@@ -33,6 +33,12 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    private static final Map<String, String> TOKEN_ERROR_MAP = Map.of(
+            "EXPIRED_TOKEN", "1007",
+            "INVALID_TOKEN", "1000",
+            "REFRESH_TOKEN_EXPIRED", "1000",
+            "UNAUTHENTICATED", "1000"
+    );
     // ================= Helper method =================
     private ResponseEntity<ErrorResponse> buildErrorResponse(
             String message, String errorCode, HttpStatus status
@@ -118,11 +124,28 @@ public class GlobalExceptionHandler {
     // Exception Handler
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAll(Exception ex) {
-        if (ex.getMessage().equals("EXPIRED_TOKEN")) {
-            return buildErrorResponse(ex.getMessage(), "1007", HttpStatus.UNAUTHORIZED);
-        } else if (ex.getMessage().equals("INVALID_TOKEN") || ex.getMessage().equals("REFRESH_TOKEN_EXPIRED")) {
-            return buildErrorResponse("UNAUTHENTICATED", "1000", HttpStatus.UNAUTHORIZED);
+        String errorMessage;
+        String errorCode;
+        HttpStatus status;
+
+        switch (ex.getMessage()) {
+            case "EXPIRED_TOKEN" -> {
+                errorMessage = ex.getMessage();
+                errorCode = TOKEN_ERROR_MAP.get("EXPIRED_TOKEN");
+                status = HttpStatus.UNAUTHORIZED;
+            }
+            case "INVALID_TOKEN", "REFRESH_TOKEN_EXPIRED", "UNAUTHENTICATED" -> {
+                errorMessage = "UNAUTHENTICATED";
+                errorCode = TOKEN_ERROR_MAP.get(ex.getMessage());
+                status = HttpStatus.UNAUTHORIZED;
+            }
+            default -> {
+                errorMessage = ex.getMessage();
+                errorCode = "9999";
+                status = HttpStatus.INTERNAL_SERVER_ERROR;
+            }
         }
-        return buildErrorResponse(ex.getMessage(), "", HttpStatus.INTERNAL_SERVER_ERROR);
+
+        return buildErrorResponse(errorMessage, errorCode, status);
     }
 }
