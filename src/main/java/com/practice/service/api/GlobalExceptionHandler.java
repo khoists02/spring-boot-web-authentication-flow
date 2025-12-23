@@ -10,6 +10,7 @@
  */
 package com.practice.service.api;
 
+import com.nimbusds.oauth2.sdk.util.StringUtils;
 import com.practice.service.dto.ErrorResponse;
 import com.practice.service.exceptions.*;
 import jakarta.persistence.EntityNotFoundException;
@@ -47,7 +48,9 @@ public class GlobalExceptionHandler {
         error.setMessage(message);
         error.setTimestamp(Instant.now());
         error.setStatus(status.value());
-        error.setErrorCode(errorCode);
+        if (StringUtils.isNotBlank(errorCode)) {
+            error.setErrorCode(errorCode);
+        }
         return ResponseEntity.status(status).body(error);
     }
 
@@ -140,8 +143,8 @@ public class GlobalExceptionHandler {
                 status = HttpStatus.UNAUTHORIZED;
             }
             default -> {
+                errorCode = "";
                 errorMessage = ex.getMessage();
-                errorCode = "9999";
                 status = HttpStatus.INTERNAL_SERVER_ERROR;
             }
         }

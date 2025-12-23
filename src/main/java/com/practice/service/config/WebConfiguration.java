@@ -1,7 +1,14 @@
 package com.practice.service.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.hubspot.jackson.datatype.protobuf.ProtobufModule;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
@@ -14,6 +21,35 @@ import java.util.List;
 
 @Configuration
 public class WebConfiguration implements WebMvcConfigurer {
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+
+        // snake_case cho JSON
+        mapper.setPropertyNamingStrategy(
+                PropertyNamingStrategies.SNAKE_CASE
+        );
+
+        // protobuf support
+        mapper.registerModule(new ProtobufModule());
+
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        return mapper;
+    }
+
+    @Override
+    public void configureMessageConverters(
+            List<HttpMessageConverter<?>> converters
+    ) {
+        MappingJackson2HttpMessageConverter jacksonConverter =
+                new MappingJackson2HttpMessageConverter();
+
+        jacksonConverter.setObjectMapper(objectMapper());
+
+        converters.add(jacksonConverter);
+    }
 
     @Override
     public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {

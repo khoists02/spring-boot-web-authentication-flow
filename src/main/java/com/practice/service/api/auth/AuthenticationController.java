@@ -59,7 +59,7 @@ public class AuthenticationController {
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage("Success"));
     }
 
-    @PutMapping("/refresh")
+    @PostMapping("/refresh")
     public ResponseEntity<?> refresh(HttpServletRequest request,HttpServletResponse response) {
         authenticationService.refreshToken(request,response);
         return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage("Refresh Token success"));
