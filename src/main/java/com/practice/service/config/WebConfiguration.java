@@ -3,6 +3,7 @@ package com.practice.service.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.hubspot.jackson.datatype.protobuf.ProtobufModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,6 +34,8 @@ public class WebConfiguration implements WebMvcConfigurer {
 
         // protobuf support
         mapper.registerModule(new ProtobufModule());
+        // support java.time.* (Instant, LocalDateTime, ...)
+        mapper.registerModule(new JavaTimeModule());
 
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 

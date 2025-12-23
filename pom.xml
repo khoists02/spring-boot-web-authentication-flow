@@ -113,6 +113,10 @@
             <version>1.0.0</version>
         </dependency>
         <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.practice</groupId>
             <artifactId>protobuf</artifactId>
             <version>1.0.0</version>
