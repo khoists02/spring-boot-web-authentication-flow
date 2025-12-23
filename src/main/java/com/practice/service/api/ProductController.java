@@ -56,13 +56,13 @@ public class ProductController {
     public ResponseEntity<?> findAllWithSpecs(
             @RequestParam Optional<String> keyword,
             @RequestParam Optional<Product.ProductCategory> category,
-            @RequestParam BigDecimal maxPrice,
-            @RequestParam BigDecimal minPrice,
+            @RequestParam Optional<BigDecimal> maxPrice,
+            @RequestParam Optional<BigDecimal> minPrice,
             @PageableDefault Pageable pageable) {
         Specification<Product> spec = Specification
                 .where(ProductSpecs.hasName(keyword.orElse("")))
                 .and(ProductSpecs.hasCategory(category.orElse(Product.ProductCategory.OTHER)))
-                .and(ProductSpecs.priceBetween(minPrice, maxPrice));
+                .and(ProductSpecs.priceBetween(minPrice.orElse(null), maxPrice.orElse(null)));
 
         return ResponseEntity.ok().body(productRepository.findAll(spec, pageable));
     }
