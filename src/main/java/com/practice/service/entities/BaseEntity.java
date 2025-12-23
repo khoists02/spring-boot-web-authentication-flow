@@ -13,9 +13,11 @@ package com.practice.service.entities;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 @MappedSuperclass
@@ -29,7 +31,7 @@ public abstract class BaseEntity implements Serializable {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @CreationTimestamp
+    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
@@ -37,11 +39,16 @@ public abstract class BaseEntity implements Serializable {
         return id;
     }
 
-    public Instant getCreatedAt() {
-        return createdAt;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        BaseEntity that = (BaseEntity) o;
+        return Objects.equals(id, that.id);
     }
 
-    public Instant getUpdatedAt() {
-        return updatedAt;
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

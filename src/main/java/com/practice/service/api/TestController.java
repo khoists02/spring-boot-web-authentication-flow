@@ -11,9 +11,7 @@
 package com.practice.service.api;
 
 import com.practice.protobuf.Test;
-import com.practice.protobuf.TestProto;
 import com.practice.service.support.Audit;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,7 +22,7 @@ public class TestController {
 
     @Audit(action = "Test")
     @GetMapping
-//    @PreAuthorize("hasPermission('vi')")
+//    @PreAuthorize("hasPermission('viewUser')")
     public Test test() {
         Test.Builder test = Test.newBuilder();
         test.setId("test");
