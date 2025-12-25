@@ -25,6 +25,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.sql.SQLException;
 import java.time.Instant;
@@ -122,6 +123,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthorizationDeniedException.class)
     public ResponseEntity<?> deniedException(AuthorizationDeniedException ex) {
         return buildErrorResponse("ACESS_DENIED", "", HttpStatus.FORBIDDEN);
+    }
+
+    // Access Deniend
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<?> deniedException(NoResourceFoundException ex) {
+        return buildErrorResponse(ex.getMessage(), "404", HttpStatus.NOT_FOUND);
     }
 
     // Exception Handler
