@@ -29,23 +29,6 @@ public class UserAuthenticationEntryPoint implements AuthenticationEntryPoint {
     public void commence(HttpServletRequest request,
                          HttpServletResponse response,
                          AuthenticationException ex) throws IOException {
-//        logger.error("ENTRYPOINT EX = {}", ex.getClass().getName());
-//        String code = "10000";
-//        String message = "UNAUTHENTICATED";
-//
-//        if (ex instanceof AuthenticationExceptionWrapper) {
-//            message = ex.getCause().getMessage();
-//        }
-//
-//        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-//        response.setContentType("application/json");
-//
-//        response.getWriter().write("""
-//        {
-//          "errorCode": "%s",
-//          "message": "%s"
-//        }
-//    """.formatted(code, message));
         if (ex instanceof AuthenticationExceptionWrapper) {
             handlerExceptionResolver.resolveException(request, response, null,(Exception) ex.getCause());
         } else {

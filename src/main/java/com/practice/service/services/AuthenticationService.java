@@ -22,10 +22,13 @@ import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.UUID;
 
 @Service
@@ -51,7 +54,7 @@ public class AuthenticationService {
         }
         User user = userRepository.findByEmail(username).orElseThrow(() -> new JwtAuthenticationException("UNAUTHENTICATED"));
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new JwtAuthenticationException("UNAUTHENTICATED");
+            throw new JwtAuthenticationException("INVALID_CREDENTIALS");
         }
         String token = jwtUtil.generateToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
@@ -66,19 +69,27 @@ public class AuthenticationService {
 
 
     private void injectAccessTokenToCookie(String token, HttpServletResponse response) {
-        Cookie cookie = new Cookie("jwt.token", token);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/"); // acces token should set path like / for all request can access cookie.
-        cookie.setMaxAge(900); // 1 hour
-        response.addCookie(cookie);
+        ResponseCookie cookie = ResponseCookie.from("jwt.token", token)
+                .httpOnly(true)
+                .secure(true)                 // 🔥 BẮT BUỘC cho SameSite=None
+                .sameSite("None")             // 🔥 để gửi được qua WSS
+                .path("/")
+                .maxAge(Duration.ofMinutes(15))
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 
     private void injectRefreshTokenToCookie(String refreshToken, HttpServletResponse response) {
-        Cookie cookie = new Cookie("jwt.refresh", refreshToken);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/auth"); // only for reresh token
-        cookie.setMaxAge(3600); // 1 hour
-        response.addCookie(cookie);
+        ResponseCookie cookie = ResponseCookie.from("jwt.refresh", refreshToken)
+                .httpOnly(true)
+                .secure(true)                 // 🔥 BẮT BUỘC cho SameSite=None
+                .sameSite("None")             // 🔥 để gửi được qua WSS
+                .path("/")
+                .maxAge(Duration.ofMinutes(60))
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) {

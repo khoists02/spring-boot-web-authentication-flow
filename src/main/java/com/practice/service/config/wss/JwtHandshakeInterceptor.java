@@ -22,21 +22,16 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
             WebSocketHandler wsHandler,
             Map<String, Object> attributes
     ) {
-
+        logger.info("WebSocket session opened");
         if (request instanceof ServletServerHttpRequest servletRequest) {
             HttpServletRequest req = servletRequest.getServletRequest();
-
             String token = req.getParameter("token");
-            // hoặc:
             // String token = req.getHeader("Authorization");
-
             if (token == null || token.isBlank()) {
                 return false; // ❌ reject handshake
             }
-
             attributes.put("token", token);
         }
-
         return true; // ✅ allow handshake
     }
 

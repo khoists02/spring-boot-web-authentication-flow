@@ -22,7 +22,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .setRelayHost("rabbitmq")   // đúng = service name
                 .setRelayPort(61613)        // STOMP port
                 .setClientLogin("guest")
-                .setClientPasscode("guest");
+                .setClientPasscode("guest")
+                .setSystemLogin("guest")
+                .setSystemPasscode("guest");
 
 
         config.setApplicationDestinationPrefixes("/app"); // prefix cho message client -> server
@@ -32,7 +34,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/websockets")
                 .addInterceptors(jwtHandshakeInterceptor)
-                .setAllowedOriginPatterns("*")
-                .withSockJS();
+                .setAllowedOriginPatterns("*");
     }
 }

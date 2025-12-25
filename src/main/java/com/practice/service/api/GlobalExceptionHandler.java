@@ -34,10 +34,11 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     private static final Map<String, String> TOKEN_ERROR_MAP = Map.of(
-            "EXPIRED_TOKEN", "1007",
-            "INVALID_TOKEN", "1000",
-            "REFRESH_TOKEN_EXPIRED", "1000",
-            "UNAUTHENTICATED", "1000"
+            "EXPIRED_TOKEN", "1004",
+            "INVALID_TOKEN", "1003",
+            "REFRESH_TOKEN_EXPIRED", "1002",
+            "UNAUTHENTICATED", "1000",
+            "INVALID_CREDENTIALS", "1001"
     );
     // ================= Helper method =================
     private ResponseEntity<ErrorResponse> buildErrorResponse(
@@ -137,7 +138,7 @@ public class GlobalExceptionHandler {
                 status = HttpStatus.UNAUTHORIZED;
             }
             case "INVALID_TOKEN", "REFRESH_TOKEN_EXPIRED", "UNAUTHENTICATED" -> {
-                errorMessage = "UNAUTHENTICATED";
+                errorMessage = ex.getMessage();
                 errorCode = TOKEN_ERROR_MAP.get(ex.getMessage());
                 status = HttpStatus.UNAUTHORIZED;
             }
